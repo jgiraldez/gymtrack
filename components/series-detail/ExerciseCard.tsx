@@ -94,32 +94,63 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = React.memo(({
           </div>
         )}
         <div className="space-y-2">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Clock className="h-4 w-4 mr-2" />
-            {isEditing ? (
-              <input
-                type="number"
-                value={editExercise.duration || exercise.duration}
-                onChange={(e) => onEditChange("duration", parseInt(e.target.value))}
-                className="w-20 px-2 py-1 border rounded"
-              />
-            ) : (
-              `${exercise.duration} seconds`
-            )}
-          </div>
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Barbell className="h-4 w-4 mr-2" />
-            {isEditing ? (
-              <input
-                type="number"
-                value={editExercise.weight || exercise.weight}
-                onChange={(e) => onEditChange("weight", parseInt(e.target.value))}
-                className="w-20 px-2 py-1 border rounded"
-              />
-            ) : (
-              `${exercise.weight} kg`
-            )}
-          </div>
+          {isEditing ? (
+            <>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="number"
+                  value={editExercise.reps || exercise.reps || 0}
+                  onChange={(e) => onEditChange("reps", parseInt(e.target.value) || 0)}
+                  className="w-20 px-2 py-1 border rounded"
+                  placeholder="Reps"
+                />
+                <span className="text-sm text-muted-foreground">reps</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="number"
+                  value={editExercise.duration || exercise.duration || 0}
+                  onChange={(e) => onEditChange("duration", parseInt(e.target.value) || 0)}
+                  className="w-20 px-2 py-1 border rounded"
+                  placeholder="Duration"
+                />
+                <span className="text-sm text-muted-foreground">seconds</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="number"
+                  value={editExercise.weight || exercise.weight || 0}
+                  onChange={(e) => onEditChange("weight", parseInt(e.target.value) || 0)}
+                  className="w-20 px-2 py-1 border rounded"
+                  placeholder="Weight"
+                />
+                <span className="text-sm text-muted-foreground">kg</span>
+              </div>
+            </>
+          ) : (
+            <>
+              {(exercise.reps ?? 0) > 0 && (
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <span>{exercise.reps} reps</span>
+                </div>
+              )}
+              {(exercise.duration ?? 0) > 0 && (
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <Clock className="h-4 w-4 mr-2" />
+                  <span>{exercise.duration} seconds</span>
+                </div>
+              )}
+              {(exercise.weight ?? 0) > 0 && (
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <Barbell className="h-4 w-4 mr-2" />
+                  <span>{exercise.weight} kg</span>
+                </div>
+              )}
+              <div className="flex items-center text-sm text-muted-foreground">
+                <span>{exercise.bilateral ? "Bilateral" : "Unilateral"}</span>
+              </div>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>

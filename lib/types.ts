@@ -1,11 +1,8 @@
 export interface Exercise {
   id: string
   name: string
-  description: string
-  muscleGroup: string
-  equipment: string[]
-  difficulty: 'beginner' | 'intermediate' | 'advanced'
-  instructions: string[]
+  videoUrl: string
+  bilateral: boolean
   createdAt: Date
   updatedAt: Date
 }

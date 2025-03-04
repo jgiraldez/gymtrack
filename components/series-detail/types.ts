@@ -1,9 +1,12 @@
 export interface Exercise {
   id: string
   name: string
-  duration: number
-  weight: number
-  videoUrl?: string
+  videoUrl: string
+  bilateral: boolean
+  reps?: number
+  duration?: number
+  weight?: number
+  completed?: boolean
 }
 
 export interface Series {
