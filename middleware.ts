@@ -4,9 +4,10 @@ import type { NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   const session = request.cookies.get('session')
   const isAuthPage = request.nextUrl.pathname.startsWith('/auth')
+  const isPublicPage = request.nextUrl.pathname === '/' || request.nextUrl.pathname === '/favicon.ico'
 
-  // If user is not authenticated and trying to access any non-auth page
-  if (!session && !isAuthPage) {
+  // If user is not authenticated and trying to access protected pages
+  if (!session && !isAuthPage && !isPublicPage) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 
@@ -27,6 +28,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image).*)',
   ],
 } 

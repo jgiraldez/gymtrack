@@ -72,6 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       router.push('/')
+      router.refresh()
     } catch (error) {
       console.error('Signup error:', error)
       throw error
@@ -105,6 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       router.push('/')
+      router.refresh()
     } catch (error) {
       console.error('Error logging in:', error)
       if (error instanceof Error) {
@@ -131,6 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Redirect to login page
       router.push('/auth/login')
+      router.refresh()
     } catch (error) {
       console.error('Error logging out:', error)
       throw error
