@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { getAuth } from 'firebase-admin/auth'
 import { initializeApp, getApps, cert } from 'firebase-admin/app'
 
+// Session route handler for authentication
 export async function POST(request: Request) {
   try {
     // Initialize Firebase Admin if it hasn't been initialized
