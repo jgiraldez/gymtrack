@@ -33,11 +33,17 @@ export async function POST(request: Request) {
 
       try {
         console.log('Attempting to initialize Firebase Admin...')
+        // Handle the private key format
+        const formattedPrivateKey = privateKey
+          .replace(/\\n/g, '\n')
+          .replace(/\\"/g, '"')
+          .replace(/^"|"$/g, '')
+
         initializeApp({
           credential: cert({
             projectId,
             clientEmail,
-            privateKey: privateKey.replace(/\\n/g, '\n'),
+            privateKey: formattedPrivateKey,
           }),
         })
         console.log('Firebase Admin initialized successfully')
