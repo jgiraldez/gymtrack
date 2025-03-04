@@ -6,7 +6,7 @@ const firebaseAdminConfig = {
   credential: cert({
     projectId: process.env.FIREBASE_PROJECT_ID,
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    privateKey: process.env.FIREBASE_PRIVATE_KEY ? JSON.parse(process.env.FIREBASE_PRIVATE_KEY) : undefined,
   }),
 }
 
@@ -14,4 +14,4 @@ const app = getApps().length === 0 ? initializeApp(firebaseAdminConfig) : getApp
 const db = getFirestore(app)
 const auth = getAuth(app)
 
-export { app, db, auth } 
+export { app, db, auth }
