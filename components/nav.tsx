@@ -56,16 +56,18 @@ export function Nav() {
     <>
       <nav className="fixed top-0 left-0 right-0 z-50 bg-black border-b border-white/10">
         <div className="container flex h-16 items-center px-4">
-          {/* Menu button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="mr-4 text-white hover:text-white/80 hover:bg-white/10"
-            onClick={toggleMenu}
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </Button>
+          {/* Menu button - only show when user is logged in */}
+          {user && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="mr-4 text-white hover:text-white/80 hover:bg-white/10"
+              onClick={toggleMenu}
+              aria-label="Toggle menu"
+            >
+              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </Button>
+          )}
 
           {/* App name */}
           <Link href="/" className="text-xl font-bold text-white">
@@ -82,11 +84,27 @@ export function Nav() {
               Logout
             </Button>
           )}
+
+          {/* Login/Signup buttons - only show if user is not logged in */}
+          {!user && (
+            <div className="ml-auto flex gap-2">
+              <Link href="/auth/login">
+                <Button variant="ghost" className="text-white hover:text-white/80 hover:bg-white/10">
+                  Login
+                </Button>
+              </Link>
+              <Link href="/auth/signup">
+                <Button variant="ghost" className="text-white hover:text-white/80 hover:bg-white/10">
+                  Sign Up
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </nav>
 
-      {/* Sidebar */}
-      {isMenuOpen && (
+      {/* Sidebar - only show when menu is open and user is logged in */}
+      {isMenuOpen && user && (
         <div className="fixed inset-0 z-50">
           {/* Overlay */}
           <div 
