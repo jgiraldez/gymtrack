@@ -8,22 +8,45 @@ export async function POST(request: Request) {
     // Initialize Firebase Admin if it hasn't been initialized
     if (!getApps().length) {
       const privateKey = process.env.FIREBASE_PRIVATE_KEY
+      const projectId = process.env.FIREBASE_PROJECT_ID
+      const clientEmail = process.env.FIREBASE_CLIENT_EMAIL
+
+      console.log('Checking Firebase configuration...')
+      console.log('Project ID exists:', !!projectId)
+      console.log('Client Email exists:', !!clientEmail)
+      console.log('Private Key exists:', !!privateKey)
+
       if (!privateKey) {
         console.error('FIREBASE_PRIVATE_KEY is not set')
-        return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+        return NextResponse.json({ error: 'Server configuration error: Missing private key' }, { status: 500 })
+      }
+
+      if (!projectId) {
+        console.error('FIREBASE_PROJECT_ID is not set')
+        return NextResponse.json({ error: 'Server configuration error: Missing project ID' }, { status: 500 })
+      }
+
+      if (!clientEmail) {
+        console.error('FIREBASE_CLIENT_EMAIL is not set')
+        return NextResponse.json({ error: 'Server configuration error: Missing client email' }, { status: 500 })
       }
 
       try {
+        console.log('Attempting to initialize Firebase Admin...')
         initializeApp({
           credential: cert({
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: JSON.parse(privateKey),
+            projectId,
+            clientEmail,
+            privateKey: privateKey.replace(/\\n/g, '\n'),
           }),
         })
+        console.log('Firebase Admin initialized successfully')
       } catch (initError) {
         console.error('Firebase Admin initialization error:', initError)
-        return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+        return NextResponse.json({ 
+          error: 'Server configuration error',
+          details: initError instanceof Error ? initError.message : 'Unknown error'
+        }, { status: 500 })
       }
     }
 
@@ -36,6 +59,7 @@ export async function POST(request: Request) {
     const cookieStore = await cookies()
     
     try {
+      console.log('Creating session cookie...')
       // Create session cookie
       const expiresIn = 60 * 60 * 24 * 7 * 1000 // 1 week
       const sessionCookie = await getAuth().createSessionCookie(idToken, { expiresIn })
@@ -49,14 +73,21 @@ export async function POST(request: Request) {
         maxAge: expiresIn / 1000 // Convert to seconds
       })
 
+      console.log('Session cookie created and set successfully')
       return NextResponse.json({ success: true })
     } catch (authError) {
       console.error('Auth error:', authError)
-      return NextResponse.json({ error: 'Invalid ID token' }, { status: 401 })
+      return NextResponse.json({ 
+        error: 'Invalid ID token',
+        details: authError instanceof Error ? authError.message : 'Unknown error'
+      }, { status: 401 })
     }
   } catch (error) {
     console.error('Unexpected error in session creation:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 }
 
