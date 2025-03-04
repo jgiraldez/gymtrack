@@ -60,14 +60,14 @@ export default function AdminDashboard() {
   if (authLoading) {
     return (
       <div className="container mx-auto p-6 max-w-md">
-        <Card>
+        <Card className="bg-white">
           <CardHeader>
-            <CardTitle>Loading...</CardTitle>
+            <CardTitle className="text-black">Loading...</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-center space-x-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              <p>Loading...</p>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+              <p className="text-black">Loading...</p>
             </div>
           </CardContent>
         </Card>
@@ -82,20 +82,21 @@ export default function AdminDashboard() {
   if (!isMasterPasswordVerified) {
     return (
       <div className="container mx-auto p-6 max-w-md">
-        <Card>
+        <Card className="bg-white">
           <CardHeader>
-            <CardTitle>Admin Access Required</CardTitle>
+            <CardTitle className="text-black">Admin Access Required</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleMasterPasswordSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="masterPassword">Master Password</Label>
+                <Label htmlFor="masterPassword" className="text-black">Master Password</Label>
                 <Input
                   id="masterPassword"
                   type="password"
                   value={masterPassword}
                   onChange={(e) => setMasterPassword(e.target.value)}
                   required
+                  className="text-black bg-white"
                 />
               </div>
               {error && (
@@ -113,7 +114,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
-      <h1 className="text-2xl font-semibold mb-6">Admin Dashboard</h1>
+      <h1 className="text-2xl font-semibold mb-6 text-black">Admin Dashboard</h1>
       
       <Tabs defaultValue="exercises" className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">

@@ -80,7 +80,7 @@ export default function ExerciseManagement() {
   }
 
   if (loading) {
-    return <div>Loading...</div>
+    return <div className="text-black">Loading...</div>
   }
 
   return (
@@ -99,7 +99,7 @@ export default function ExerciseManagement() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  className="w-full text-black"
+                  className="w-full text-black bg-white"
                 />
               </div>
               <div className="space-y-2">
@@ -109,7 +109,7 @@ export default function ExerciseManagement() {
                   value={formData.muscleGroup}
                   onChange={(e) => setFormData({ ...formData, muscleGroup: e.target.value })}
                   required
-                  className="w-full text-black"
+                  className="w-full text-black bg-white"
                 />
               </div>
             </div>
@@ -120,7 +120,7 @@ export default function ExerciseManagement() {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 required
-                className="w-full text-black"
+                className="w-full text-black bg-white"
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -131,7 +131,7 @@ export default function ExerciseManagement() {
                   value={formData.equipment}
                   onChange={(e) => setFormData({ ...formData, equipment: e.target.value })}
                   required
-                  className="w-full text-black"
+                  className="w-full text-black bg-white"
                 />
               </div>
               <div className="space-y-2">
@@ -140,7 +140,7 @@ export default function ExerciseManagement() {
                   value={formData.difficulty}
                   onValueChange={(value) => setFormData({ ...formData, difficulty: value as Difficulty })}
                 >
-                  <SelectTrigger className="w-full text-black">
+                  <SelectTrigger className="w-full text-black bg-white">
                     <SelectValue placeholder="Select difficulty" />
                   </SelectTrigger>
                   <SelectContent>
@@ -158,7 +158,7 @@ export default function ExerciseManagement() {
                   id="videoUrl"
                   value={formData.videoUrl}
                   onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                  className="w-full text-black"
+                  className="w-full text-black bg-white"
                 />
               </div>
               <div className="space-y-2">
@@ -167,7 +167,7 @@ export default function ExerciseManagement() {
                   id="imageUrl"
                   value={formData.imageUrl}
                   onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  className="w-full text-black"
+                  className="w-full text-black bg-white"
                 />
               </div>
             </div>
@@ -178,7 +178,7 @@ export default function ExerciseManagement() {
                 value={formData.instructions}
                 onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
                 required
-                className="w-full text-black"
+                className="w-full text-black bg-white"
               />
             </div>
             <Button type="submit" className="w-full">Add Exercise</Button>
