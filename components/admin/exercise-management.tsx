@@ -205,6 +205,7 @@ export default function ExerciseManagement() {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleEdit(exercise)}
+                        aria-label={`Edit ${exercise.name!}`}
                       >
                         <Edit2 className="h-4 w-4" />
                       </Button>
@@ -213,6 +214,7 @@ export default function ExerciseManagement() {
                         size="icon"
                         onClick={() => handleDelete(exercise.id)}
                         className="text-red-500 hover:text-red-700"
+                        aria-label={`Delete ${exercise.name!}`}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

@@ -70,6 +70,8 @@ export default function GymTracker() {
       name: `Series ${data.days.find((d) => d.id === dayId)?.seriesIds.length ?? 0 + 1}`,
       rounds: 3,
       exerciseIds: [],
+      createdAt: new Date(),
+      updatedAt: new Date()
     }
 
     setData({
@@ -87,9 +89,12 @@ export default function GymTracker() {
       duration: 0,
       load: 0,
       isBilateral: true,
+      bilateral: true,
       videoUrl: "",
       completed: false,
       completedReps: 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
     }
 
     setData({

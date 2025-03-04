@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Edit2, Trash2, Youtube, Clock, DumbbellIcon as Barbell } from "lucide-react"
 import type { Series, Exercise } from "@/lib/types"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getYoutubeVideoId, getYoutubeThumbnailUrl } from "@/lib/utils"
 import { Switch } from "@/components/ui/switch"
@@ -68,7 +68,7 @@ export default function SeriesDetail({
     [exercises, series.rounds, onUpdateExercise],
   )
 
-  const handleRateExercise = (rating: number) => {
+  const handleRateExercise = () => {
     if (!currentExerciseId) return
 
     onUpdateExercise(currentExerciseId, {
@@ -91,13 +91,16 @@ export default function SeriesDetail({
   }
 
   const checkSeriesCompletion = useCallback(() => {
+    // Don't mark empty series as completed
+    if (exercises.length === 0) return
+
     const allExercisesCompleted = exercises.every((exercise) => exercise.completed)
     if (allExercisesCompleted) {
       setShowCongratulationsOverlay(true)
       setTimeout(() => {
         setShowCongratulationsOverlay(false)
         onSeriesCompleted(series.id)
-      }, 2000) // Show congratulations for 2 seconds before moving to the next series
+      }, 2000)
     }
   }, [exercises, series.id, onSeriesCompleted])
 
@@ -123,9 +126,9 @@ export default function SeriesDetail({
     setEditingExerciseId(exercise.id)
     setEditExercise({
       name: exercise.name,
-      reps: exercise.reps,
-      duration: exercise.duration,
-      load: exercise.load,
+      reps: exercise.reps || 0,
+      duration: exercise.duration || 0,
+      load: exercise.load || 0,
       isBilateral: exercise.isBilateral,
       videoUrl: exercise.videoUrl,
     })
@@ -150,7 +153,7 @@ export default function SeriesDetail({
     setShowVideoDialog(true)
   }
 
-  const handleAddExistingExercise = () => {
+  const handleAddExistingExercise = async () => {
     if (!selectedExistingId) return
 
     const selectedExercise = allExercises.find((e) => e.id === selectedExistingId)
@@ -171,7 +174,15 @@ export default function SeriesDetail({
       updatedAt: new Date()
     }
 
-    onUpdateExercise(newExercise.id, newExercise)
+    // First add the exercise
+    await onUpdateExercise(newExercise.id, newExercise)
+    
+    // Then update the series to include the new exercise ID
+    await onUpdateSeries(series.id, {
+      ...series,
+      exerciseIds: [...series.exerciseIds, newExercise.id]
+    })
+
     setAddFromExisting(false)
     setSelectedExistingId("")
   }
@@ -191,18 +202,31 @@ export default function SeriesDetail({
         </h2>
         <div className="flex space-x-4">
           <div className="flex items-center space-x-2">
-            <Button size="sm" variant={viewMode === "grid" ? "default" : "outline"} onClick={() => setViewMode("grid")}>
+            <Button 
+              size="sm" 
+              variant={viewMode === "grid" ? "default" : "outline"} 
+              onClick={() => setViewMode("grid")}
+              aria-label="Ver en cuadrícula"
+              aria-pressed={viewMode === "grid"}
+            >
               <LayoutGrid className="h-4 w-4" />
             </Button>
             <Button
               size="sm"
               variant={viewMode === "table" ? "default" : "outline"}
               onClick={() => setViewMode("table")}
+              aria-label="Ver en lista"
+              aria-pressed={viewMode === "table"}
             >
               <List className="h-4 w-4" />
             </Button>
           </div>
-          <Button onClick={() => setAddFromExisting(true)} variant="secondary" className="btn-secondary">
+          <Button 
+            onClick={() => setAddFromExisting(true)} 
+            variant="secondary" 
+            className="btn-secondary"
+            data-testid="add-existing-exercise-button"
+          >
             Agregar Ejercicio Existente
           </Button>
         </div>
@@ -243,6 +267,7 @@ export default function SeriesDetail({
                         variant="ghost"
                         onClick={(e) => handleEditClick(exercise, e)}
                         className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent"
+                        aria-label="Editar ejercicio"
                       >
                         <Edit2 className="h-4 w-4" />
                       </Button>
@@ -251,6 +276,7 @@ export default function SeriesDetail({
                         variant="ghost"
                         onClick={(e) => handleDeleteClick(exercise.id, e)}
                         className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-accent"
+                        aria-label="Eliminar ejercicio"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -329,26 +355,21 @@ export default function SeriesDetail({
                 ) : (
                   <>
                     <div className="flex flex-wrap gap-2">
-                      {exercise.reps > 0 && (
-                        <div className="flex items-center text-sm bg-gray-200 text-gray-800 px-2 py-1 rounded">
+                      {exercise.reps !== undefined && (
+                        <div className="flex items-center space-x-2">
+                          <Barbell className="h-4 w-4" />
                           <span>{exercise.reps} reps</span>
+                          {exercise.load !== undefined && exercise.load > 0 && (
+                            <span>@ {exercise.load}kg</span>
+                          )}
                         </div>
                       )}
-                      {exercise.duration > 0 && (
-                        <div className="flex items-center text-sm bg-gray-200 text-gray-800 px-2 py-1 rounded">
-                          <Clock className="h-3 w-3 mr-1" />
+                      {exercise.duration !== undefined && exercise.duration > 0 && (
+                        <div className="flex items-center space-x-2">
+                          <Clock className="h-4 w-4" />
                           <span>{exercise.duration}s</span>
                         </div>
                       )}
-                      {exercise.load > 0 && (
-                        <div className="flex items-center text-sm bg-gray-200 text-gray-800 px-2 py-1 rounded">
-                          <Barbell className="h-3 w-3 mr-1" />
-                          <span>{exercise.load} kg</span>
-                        </div>
-                      )}
-                      <div className="flex items-center text-sm bg-gray-200 text-gray-800 px-2 py-1 rounded">
-                        <span>{exercise.isBilateral ? "Bilateral" : "Unilateral"}</span>
-                      </div>
                     </div>
 
                     {exercise.videoUrl && getYoutubeVideoId(exercise.videoUrl) && (
@@ -364,12 +385,6 @@ export default function SeriesDetail({
                         <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                           <Youtube className="h-10 w-10 text-red-500" />
                         </div>
-                      </div>
-                    )}
-                    {exercise.rating && (
-                      <div className="flex items-center mt-2">
-                        <Star className={`h-4 w-4 ${exercise.rating <= 3 ? "text-yellow-500" : "text-red-500"} mr-1`} />
-                        <span className="text-sm">Rated: {exercise.rating}/5</span>
                       </div>
                     )}
                   </>
@@ -423,8 +438,16 @@ export default function SeriesDetail({
                     {exercise.name}
                   </div>
                 </TableCell>
-                <TableCell>{exercise.reps > 0 ? `${exercise.reps} reps` : `${exercise.duration}s`}</TableCell>
-                <TableCell>{exercise.load > 0 ? `${exercise.load} kg` : "-"}</TableCell>
+                <TableCell>
+                  {exercise.reps !== undefined && exercise.reps > 0 
+                    ? `${exercise.reps} reps` 
+                    : exercise.duration !== undefined && exercise.duration > 0 
+                      ? `${exercise.duration}s` 
+                      : "-"}
+                </TableCell>
+                <TableCell>
+                  {exercise.load !== undefined && exercise.load > 0 ? `${exercise.load} kg` : "-"}
+                </TableCell>
                 <TableCell>{exercise.isBilateral ? "Bilateral" : "Unilateral"}</TableCell>
                 <TableCell>
                   {exercise.videoUrl && (
@@ -452,10 +475,22 @@ export default function SeriesDetail({
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
-                    <Button size="sm" variant="ghost" onClick={(e) => handleEditClick(exercise, e)}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(e) => handleEditClick(exercise, e)}
+                      className="text-muted-foreground hover:text-foreground"
+                      aria-label="Editar ejercicio"
+                    >
                       <Edit2 className="h-4 w-4" />
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={(e) => handleDeleteClick(exercise.id, e)}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(e) => handleDeleteClick(exercise.id, e)}
+                      className="text-muted-foreground hover:text-destructive"
+                      aria-label="Eliminar ejercicio"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -501,9 +536,12 @@ export default function SeriesDetail({
 
       {/* Add Existing Exercise Dialog */}
       <Dialog open={addFromExisting} onOpenChange={setAddFromExisting}>
-        <DialogContent className="sm:max-w-[500px] secondary-box">
+        <DialogContent className="sm:max-w-[500px] secondary-box" data-testid="add-existing-exercise-dialog">
           <DialogHeader>
             <DialogTitle>Agregar Ejercicio Existente</DialogTitle>
+            <DialogDescription>
+              Selecciona un ejercicio de la lista para agregarlo a la serie.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <Select value={selectedExistingId} onValueChange={setSelectedExistingId}>

@@ -104,6 +104,7 @@ export default function DaysList({ days, onDayClick, onUpdateDay, onDeleteDay }:
                       variant="ghost"
                       onClick={(e) => handleDeleteClick(day.id, e)}
                       className="text-muted-foreground hover:text-destructive"
+                      aria-label="Eliminar día"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -152,6 +153,7 @@ export default function DaysList({ days, onDayClick, onUpdateDay, onDeleteDay }:
                         variant="ghost"
                         onClick={(e) => handleDeleteClick(day.id, e)}
                         className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-accent"
+                        aria-label="Eliminar día"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
