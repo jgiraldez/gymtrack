@@ -58,13 +58,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Then get the ID token and set the session
       const idToken = await user.getIdToken()
-      await fetch('/api/auth/session', {
+      const response = await fetch('/api/auth/session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ idToken }),
       })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to create session')
+      }
 
       router.push('/')
     } catch (error) {
@@ -79,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const idToken = await userCredential.user.getIdToken()
       
       // Set session cookie
-      await fetch('/api/auth/session', {
+      const response = await fetch('/api/auth/session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,19 +92,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ idToken }),
       })
 
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to create session')
+      }
+
       router.push('/')
     } catch (error) {
       console.error('Error logging in:', error)
-      throw error
+      if (error instanceof Error) {
+        throw new Error(error.message)
+      }
+      throw new Error('An unexpected error occurred during login')
     }
   }
 
   const logout = async () => {
     try {
       // Clear session cookie
-      await fetch('/api/auth/session', {
+      const response = await fetch('/api/auth/session', {
         method: 'DELETE',
       })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to clear session')
+      }
 
       // Sign out from Firebase
       await signOut(auth)
