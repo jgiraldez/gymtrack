@@ -3,17 +3,25 @@ export interface Exercise {
   name: string
   videoUrl: string
   bilateral: boolean
+  reps?: number
+  duration?: number
+  load?: number
+  isBilateral?: boolean
+  completed?: boolean
+  completedReps?: number
   createdAt: Date
   updatedAt: Date
 }
 
 export interface Series {
   id: string
-  exerciseId: string
-  reps: number
-  weight: number
-  notes?: string
+  name: string
+  rounds: number
+  exerciseIds: string[]
+  icon?: string
+  progress?: number
   createdAt: Date
+  updatedAt: Date
 }
 
 export interface TrainingDay {

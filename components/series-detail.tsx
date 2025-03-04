@@ -69,10 +69,24 @@ export default function SeriesDetail({
   )
 
   const handleRateExercise = (rating: number) => {
-    if (currentExerciseId) {
-      onUpdateExercise(currentExerciseId, { rating })
-      setShowRatingDialog(false)
-      checkSeriesCompletion()
+    if (!currentExerciseId) return
+
+    onUpdateExercise(currentExerciseId, {
+      completed: true,
+      completedReps: series.rounds
+    })
+
+    setShowRatingDialog(false)
+    setCurrentExerciseId(null)
+
+    // Check if all exercises are completed
+    const allCompleted = exercises.every((exercise) => exercise.completed)
+    if (allCompleted) {
+      setShowCongratulationsOverlay(true)
+      setTimeout(() => {
+        setShowCongratulationsOverlay(false)
+        onSeriesCompleted(series.id)
+      }, 2000)
     }
   }
 
@@ -139,21 +153,25 @@ export default function SeriesDetail({
   const handleAddExistingExercise = () => {
     if (!selectedExistingId) return
 
-    const existingExercise = allExercises.find((e) => e.id === selectedExistingId)
-    if (!existingExercise) return
+    const selectedExercise = allExercises.find((e) => e.id === selectedExistingId)
+    if (!selectedExercise) return
 
     const newExercise: Exercise = {
-      ...existingExercise,
       id: crypto.randomUUID(),
+      name: selectedExercise.name,
+      videoUrl: selectedExercise.videoUrl,
+      bilateral: selectedExercise.bilateral,
+      isBilateral: selectedExercise.bilateral,
+      reps: 0,
+      duration: 0,
+      load: 0,
       completed: false,
       completedReps: 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
     }
 
     onUpdateExercise(newExercise.id, newExercise)
-    onUpdateSeries(series.id, {
-      exerciseIds: [...series.exerciseIds, newExercise.id],
-    })
-
     setAddFromExisting(false)
     setSelectedExistingId("")
   }
@@ -191,7 +209,7 @@ export default function SeriesDetail({
       </div>
 
       <div className="bg-secondary text-secondary-foreground p-4 rounded-lg">
-        <p className="text-lg font-semibold">Progreso de la Serie: {Math.floor(series.progress * 100)}%</p>
+        <p className="text-lg font-semibold">Progreso de la Serie: {Math.floor((series.progress || 0) * 100)}%</p>
         <progress
           className="w-full"
           value={exercises.reduce((sum, exercise) => sum + (exercise.completedReps || 0), 0)}
@@ -493,8 +511,8 @@ export default function SeriesDetail({
                 <SelectValue placeholder="Select an exercise" />
               </SelectTrigger>
               <SelectContent className="bg-secondary border-input">
-                {availableExercises.length > 0 ? (
-                  availableExercises.map((exercise) => (
+                {allExercises.length > 0 ? (
+                  allExercises.map((exercise) => (
                     <SelectItem key={exercise.id} value={exercise.id} className="text-white">
                       {exercise.name}
                     </SelectItem>
@@ -517,32 +535,6 @@ export default function SeriesDetail({
               className="btn-primary text-white"
             >
               Agregar Ejercicio
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Rating Dialog */}
-      <Dialog open={showRatingDialog} onOpenChange={setShowRatingDialog}>
-        <DialogContent className="sm:max-w-[425px] bg-card text-card-foreground">
-          <DialogHeader>
-            <DialogTitle>Califica el ejercicio</DialogTitle>
-          </DialogHeader>
-          <div className="flex justify-center space-x-2 py-4">
-            {[1, 2, 3, 4, 5].map((rating) => (
-              <Button
-                key={rating}
-                onClick={() => handleRateExercise(rating)}
-                variant="outline"
-                className="w-12 h-12 rounded-full"
-              >
-                <Star className={`h-6 w-6 ${rating <= 3 ? "text-yellow-500" : "text-red-500"}`} />
-              </Button>
-            ))}
-          </div>
-          <DialogFooter>
-            <Button onClick={() => setShowRatingDialog(false)} variant="secondary">
-              Omitir
             </Button>
           </DialogFooter>
         </DialogContent>

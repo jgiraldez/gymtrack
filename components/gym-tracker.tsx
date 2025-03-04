@@ -1,14 +1,14 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Plus, Upload, ArrowLeft } from "lucide-react"
+import { Plus, ArrowLeft } from "lucide-react"
 import DaysList from "@/components/days-list"
 import DayDetail from "@/components/day-detail"
 import SeriesDetail from "@/components/series-detail"
 import { useLocalStorage } from "@/hooks/use-local-storage"
-import ImportCSV from "@/components/import-csv"
 import { initialData } from "@/lib/initial-data"
+import { exerciseService } from "@/lib/services"
 import type { Day, Series, Exercise } from "@/lib/types"
 
 export default function GymTracker() {
@@ -16,7 +16,20 @@ export default function GymTracker() {
   const [activeView, setActiveView] = useState<"days" | "day" | "series">("days")
   const [activeDayId, setActiveDayId] = useState<string | null>(null)
   const [activeSeriesId, setActiveSeriesId] = useState<string | null>(null)
-  const [showImport, setShowImport] = useState(false)
+  const [adminExercises, setAdminExercises] = useState<Exercise[]>([])
+
+  useEffect(() => {
+    loadAdminExercises()
+  }, [])
+
+  const loadAdminExercises = async () => {
+    try {
+      const exercises = await exerciseService.getAll()
+      setAdminExercises(exercises)
+    } catch (error) {
+      console.error('Error loading admin exercises:', error)
+    }
+  }
 
   const handleAddDay = () => {
     const newDay: Day = {
@@ -69,20 +82,23 @@ export default function GymTracker() {
   const handleAddExercise = (seriesId: string) => {
     const newExercise: Exercise = {
       id: crypto.randomUUID(),
-      name: "New Exercise",
-      reps: 10,
+      name: `Exercise ${data.exercises.length + 1}`,
+      reps: 0,
       duration: 0,
       load: 0,
       isBilateral: true,
       videoUrl: "",
       completed: false,
+      completedReps: 0,
     }
 
     setData({
       ...data,
       exercises: [...data.exercises, newExercise],
       series: data.series.map((series) =>
-        series.id === seriesId ? { ...series, exerciseIds: [...series.exerciseIds, newExercise.id] } : series,
+        series.id === seriesId
+          ? { ...series, exerciseIds: [...series.exerciseIds, newExercise.id] }
+          : series
       ),
     })
   }
@@ -161,14 +177,6 @@ export default function GymTracker() {
     handleBackToDays()
   }
 
-  const handleImportExercises = (exercises: Exercise[]) => {
-    setData({
-      ...data,
-      exercises: [...data.exercises, ...exercises],
-    })
-    setShowImport(false)
-  }
-
   const handleSeriesCompletion = (completedSeriesId: string) => {
     const currentDay = data.days.find((day) => day.seriesIds.includes(completedSeriesId))
     if (currentDay) {
@@ -186,8 +194,8 @@ export default function GymTracker() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="container mx-auto p-4 space-y-4">
+      <div className="flex flex-col sm:flex-row justify-between gap-2">
         {activeView === "days" ? (
           <Button onClick={handleAddDay} className="btn-primary w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" /> Agregar Día
@@ -211,13 +219,7 @@ export default function GymTracker() {
             </Button>
           </div>
         )}
-
-        <Button onClick={() => setShowImport(true)} variant="secondary" className="btn-secondary w-full sm:w-auto">
-          <Upload className="mr-2 h-4 w-4" /> Importar Ejercicios
-        </Button>
       </div>
-
-      {showImport && <ImportCSV onImport={handleImportExercises} onCancel={() => setShowImport(false)} />}
 
       {activeView === "days" && (
         <DaysList
@@ -230,8 +232,8 @@ export default function GymTracker() {
 
       {activeView === "day" && activeDayId && (
         <DayDetail
-          day={data.days.find((d) => d.id === activeDayId)!}
-          series={data.series.filter((s) => data.days.find((d) => d.id === activeDayId)?.seriesIds.includes(s.id))}
+          day={data.days.find((day) => day.id === activeDayId)!}
+          series={data.series.filter((series) => data.days.find((day) => day.id === activeDayId)?.seriesIds.includes(series.id))}
           onSeriesClick={handleSeriesClick}
           onUpdateSeries={handleUpdateSeries}
           onDeleteSeries={(seriesId) => handleDeleteSeries(seriesId, activeDayId)}
@@ -240,14 +242,14 @@ export default function GymTracker() {
 
       {activeView === "series" && activeSeriesId && (
         <SeriesDetail
-          series={data.series.find((s) => s.id === activeSeriesId)!}
-          exercises={data.exercises.filter((e) =>
-            data.series.find((s) => s.id === activeSeriesId)?.exerciseIds.includes(e.id),
+          series={data.series.find((series) => series.id === activeSeriesId)!}
+          exercises={data.exercises.filter((exercise) =>
+            data.series.find((series) => series.id === activeSeriesId)?.exerciseIds.includes(exercise.id)
           )}
-          allExercises={data.exercises}
+          allExercises={adminExercises}
           onUpdateExercise={handleUpdateExercise}
           onDeleteExercise={(exerciseId) => handleDeleteExercise(exerciseId, activeSeriesId)}
-          onUpdateSeries={handleUpdateSeries}
+          onUpdateSeries={(seriesId, updatedSeries) => handleUpdateSeries(seriesId, updatedSeries)}
           onSeriesCompleted={handleSeriesCompletion}
         />
       )}
