@@ -34,13 +34,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={poppins.variable}>
+    <html lang="en" className={`${poppins.variable} dark`}>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#000000" />
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
       </head>
-      <body className="font-sans bg-black text-white min-h-screen flex flex-col">
+      <body className="font-sans min-h-screen flex flex-col">
         <AuthProvider>
           <Nav />
           <main className="flex-grow pt-16">{children}</main>

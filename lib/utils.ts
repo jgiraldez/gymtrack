@@ -1,6 +1,10 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
 export function formatDate(dateString: string): string {
   const date = new Date(dateString)
   return new Intl.DateTimeFormat("en-US", {
@@ -37,9 +41,5 @@ export function getYoutubeThumbnailUrl(url: string): string {
   if (!videoId) return "/placeholder.svg?height=180&width=320"
 
   return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
-}
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
 }
 
