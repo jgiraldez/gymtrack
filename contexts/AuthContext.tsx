@@ -92,9 +92,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ idToken }),
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to create session')
+        if (response.status === 401) {
+          throw new Error('Invalid credentials')
+        } else if (response.status === 500) {
+          throw new Error('Server error. Please try again later.')
+        } else {
+          throw new Error(data.error || 'Failed to create session')
+        }
       }
 
       router.push('/')

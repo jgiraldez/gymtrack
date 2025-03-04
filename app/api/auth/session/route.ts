@@ -7,35 +7,56 @@ export async function POST(request: Request) {
   try {
     // Initialize Firebase Admin if it hasn't been initialized
     if (!getApps().length) {
-      initializeApp({
-        credential: cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY ? JSON.parse(process.env.FIREBASE_PRIVATE_KEY) : undefined,
-        }),
-      })
+      const privateKey = process.env.FIREBASE_PRIVATE_KEY
+      if (!privateKey) {
+        console.error('FIREBASE_PRIVATE_KEY is not set')
+        return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+      }
+
+      try {
+        initializeApp({
+          credential: cert({
+            projectId: process.env.FIREBASE_PROJECT_ID,
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+            privateKey: JSON.parse(privateKey),
+          }),
+        })
+      } catch (initError) {
+        console.error('Firebase Admin initialization error:', initError)
+        return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+      }
     }
 
     const { idToken } = await request.json()
+    if (!idToken) {
+      console.error('No ID token provided')
+      return NextResponse.json({ error: 'No ID token provided' }, { status: 400 })
+    }
+
     const cookieStore = await cookies()
     
-    // Create session cookie
-    const expiresIn = 60 * 60 * 24 * 7 * 1000 // 1 week
-    const sessionCookie = await getAuth().createSessionCookie(idToken, { expiresIn })
-    
-    // Set session cookie
-    cookieStore.set('session', sessionCookie, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: expiresIn / 1000 // Convert to seconds
-    })
+    try {
+      // Create session cookie
+      const expiresIn = 60 * 60 * 24 * 7 * 1000 // 1 week
+      const sessionCookie = await getAuth().createSessionCookie(idToken, { expiresIn })
+      
+      // Set session cookie
+      cookieStore.set('session', sessionCookie, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: expiresIn / 1000 // Convert to seconds
+      })
 
-    return NextResponse.json({ success: true })
+      return NextResponse.json({ success: true })
+    } catch (authError) {
+      console.error('Auth error:', authError)
+      return NextResponse.json({ error: 'Invalid ID token' }, { status: 401 })
+    }
   } catch (error) {
-    console.error('Error creating session:', error)
-    return NextResponse.json({ error: 'Failed to create session' }, { status: 500 })
+    console.error('Unexpected error in session creation:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
