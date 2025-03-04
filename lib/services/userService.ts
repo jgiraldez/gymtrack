@@ -1,5 +1,5 @@
 import { db } from '@/lib/firebase'
-import { collection, doc, getDoc, setDoc, updateDoc, query, where, getDocs, Timestamp } from 'firebase/firestore'
+import { collection, doc, getDoc, setDoc, updateDoc, query, where, getDocs, Timestamp, deleteDoc } from 'firebase/firestore'
 import type { User } from 'firebase/auth'
 
 export interface UserProfile {
@@ -135,6 +135,26 @@ const userService = {
       lastLogin: new Date(),
       updatedAt: new Date()
     })
+  },
+
+  async getAllUsers(): Promise<UserProfile[]> {
+    const usersRef = collection(db, 'users')
+    const userDocs = await getDocs(usersRef)
+    return userDocs.docs.map(doc => {
+      const data = doc.data()
+      return {
+        ...data,
+        createdAt: data.createdAt.toDate(),
+        updatedAt: data.updatedAt.toDate(),
+        lastLogin: data.lastLogin.toDate(),
+        lastWorkoutDate: data.lastWorkoutDate?.toDate() || null
+      } as UserProfile
+    })
+  },
+
+  async deleteUser(userId: string): Promise<void> {
+    const userRef = doc(db, 'users', userId)
+    await deleteDoc(userRef)
   }
 }
 

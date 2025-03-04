@@ -1,30 +1,26 @@
 "use client"
 
 import { useState, useEffect } from 'react'
+import { userService, type UserProfile } from '@/lib/services/userService'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
-interface User {
-  id: string
-  email: string
-  displayName: string | null
-  role: 'user' | 'admin'
-  createdAt: Date
-}
-
-type UserRole = 'user' | 'admin'
+import { ArrowUpDown, Edit2, Trash2 } from "lucide-react"
+import { format } from 'date-fns'
 
 export default function UserManagement() {
-  const [users, setUsers] = useState<User[]>([])
+  const [users, setUsers] = useState<UserProfile[]>([])
   const [loading, setLoading] = useState(true)
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof UserProfile,
+    direction: 'asc' | 'desc'
+  }>({ key: 'email', direction: 'asc' })
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null)
   const [formData, setFormData] = useState({
-    email: '',
     displayName: '',
-    role: 'user' as UserRole
+    role: 'user' as 'user' | 'admin'
   })
 
   useEffect(() => {
@@ -33,9 +29,8 @@ export default function UserManagement() {
 
   const loadUsers = async () => {
     try {
-      // In a real application, you would fetch users from your backend
-      // For now, we'll just show a placeholder
-      setUsers([])
+      const data = await userService.getAllUsers()
+      setUsers(data)
     } catch (error) {
       console.error('Error loading users:', error)
     } finally {
@@ -45,25 +40,36 @@ export default function UserManagement() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!editingUser) return
+
     try {
-      // In a real application, you would create a user through your backend
-      console.log('Creating user:', formData)
+      await userService.updateProfile(editingUser.uid, {
+        ...formData,
+        updatedAt: new Date()
+      })
+      setEditingUser(null)
       setFormData({
-        email: '',
         displayName: '',
         role: 'user'
       })
       loadUsers()
     } catch (error) {
-      console.error('Error creating user:', error)
+      console.error('Error updating user:', error)
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this user?')) {
+  const handleEdit = (user: UserProfile) => {
+    setEditingUser(user)
+    setFormData({
+      displayName: user.displayName || '',
+      role: user.role
+    })
+  }
+
+  const handleDelete = async (uid: string) => {
+    if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
       try {
-        // In a real application, you would delete the user through your backend
-        console.log('Deleting user:', id)
+        await userService.deleteUser(uid)
         loadUsers()
       } catch (error) {
         console.error('Error deleting user:', error)
@@ -71,88 +77,136 @@ export default function UserManagement() {
     }
   }
 
+  const handleSort = (key: keyof UserProfile) => {
+    setSortConfig({
+      key,
+      direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
+    })
+  }
+
+  const sortedUsers = [...users].sort((a, b) => {
+    if (sortConfig.direction === 'asc') {
+      return a[sortConfig.key] > b[sortConfig.key] ? 1 : -1
+    }
+    return a[sortConfig.key] < b[sortConfig.key] ? 1 : -1
+  })
+
   if (loading) {
-    return <div>Loading...</div>
+    return <div className="text-black">Loading...</div>
   }
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Add New User</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {editingUser && (
+        <Card className="bg-white">
+          <CardHeader>
+            <CardTitle className="text-xl text-black">Edit User</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="displayName">Display Name</Label>
+                <Label htmlFor="displayName" className="text-black">Display Name</Label>
                 <Input
                   id="displayName"
                   value={formData.displayName}
                   onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
+                  className="w-full text-black bg-white"
                 />
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Select
-                value={formData.role}
-                onValueChange={(value) => setFormData({ ...formData, role: value as UserRole })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">User</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button type="submit">Add User</Button>
-          </form>
-        </CardContent>
-      </Card>
+              <div className="space-y-2">
+                <Label htmlFor="role" className="text-black">Role</Label>
+                <select
+                  id="role"
+                  value={formData.role}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value as 'user' | 'admin' })}
+                  className="w-full p-2 border rounded-md text-black bg-white"
+                >
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div className="flex gap-2">
+                <Button type="submit" className="flex-1">
+                  Update User
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={() => {
+                    setEditingUser(null)
+                    setFormData({ displayName: '', role: 'user' })
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
 
-      <Card>
+      <Card className="bg-white">
         <CardHeader>
-          <CardTitle>User List</CardTitle>
+          <CardTitle className="text-xl text-black">User List</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Email</TableHead>
-                <TableHead>Display Name</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Created At</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="text-black cursor-pointer" onClick={() => handleSort('email')}>
+                  <div className="flex items-center gap-2">
+                    Email
+                    <ArrowUpDown className="h-4 w-4" />
+                  </div>
+                </TableHead>
+                <TableHead className="text-black cursor-pointer" onClick={() => handleSort('displayName')}>
+                  <div className="flex items-center gap-2">
+                    Display Name
+                    <ArrowUpDown className="h-4 w-4" />
+                  </div>
+                </TableHead>
+                <TableHead className="text-black cursor-pointer" onClick={() => handleSort('role')}>
+                  <div className="flex items-center gap-2">
+                    Role
+                    <ArrowUpDown className="h-4 w-4" />
+                  </div>
+                </TableHead>
+                <TableHead className="text-black cursor-pointer" onClick={() => handleSort('lastLogin')}>
+                  <div className="flex items-center gap-2">
+                    Last Login
+                    <ArrowUpDown className="h-4 w-4" />
+                  </div>
+                </TableHead>
+                <TableHead className="text-black text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.displayName || '-'}</TableCell>
-                  <TableCell>{user.role}</TableCell>
-                  <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDelete(user.id)}
-                    >
-                      Delete
-                    </Button>
+              {sortedUsers.map((user) => (
+                <TableRow key={user.uid}>
+                  <TableCell className="font-medium text-black">{user.email}</TableCell>
+                  <TableCell className="text-black">{user.displayName || '-'}</TableCell>
+                  <TableCell className="text-black capitalize">{user.role}</TableCell>
+                  <TableCell className="text-black">
+                    {user.lastLogin ? format(user.lastLogin, 'MMM d, yyyy HH:mm') : '-'}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(user)}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(user.uid)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
