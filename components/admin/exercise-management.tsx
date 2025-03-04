@@ -85,62 +85,62 @@ export default function ExerciseManagement() {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="bg-white">
         <CardHeader>
-          <CardTitle className="text-xl">Add New Exercise</CardTitle>
+          <CardTitle className="text-xl text-black">Add New Exercise</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name" className="text-black">Name</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  className="w-full"
+                  className="w-full text-black"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="muscleGroup">Muscle Group</Label>
+                <Label htmlFor="muscleGroup" className="text-black">Muscle Group</Label>
                 <Input
                   id="muscleGroup"
                   value={formData.muscleGroup}
                   onChange={(e) => setFormData({ ...formData, muscleGroup: e.target.value })}
                   required
-                  className="w-full"
+                  className="w-full text-black"
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description" className="text-black">Description</Label>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 required
-                className="w-full"
+                className="w-full text-black"
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="equipment">Equipment (comma-separated)</Label>
+                <Label htmlFor="equipment" className="text-black">Equipment (comma-separated)</Label>
                 <Input
                   id="equipment"
                   value={formData.equipment}
                   onChange={(e) => setFormData({ ...formData, equipment: e.target.value })}
                   required
-                  className="w-full"
+                  className="w-full text-black"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="difficulty">Difficulty</Label>
+                <Label htmlFor="difficulty" className="text-black">Difficulty</Label>
                 <Select
                   value={formData.difficulty}
                   onValueChange={(value) => setFormData({ ...formData, difficulty: value as Difficulty })}
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="w-full text-black">
                     <SelectValue placeholder="Select difficulty" />
                   </SelectTrigger>
                   <SelectContent>
@@ -153,32 +153,32 @@ export default function ExerciseManagement() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="videoUrl">Video URL</Label>
+                <Label htmlFor="videoUrl" className="text-black">Video URL</Label>
                 <Input
                   id="videoUrl"
                   value={formData.videoUrl}
                   onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                  className="w-full"
+                  className="w-full text-black"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="imageUrl">Image URL</Label>
+                <Label htmlFor="imageUrl" className="text-black">Image URL</Label>
                 <Input
                   id="imageUrl"
                   value={formData.imageUrl}
                   onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  className="w-full"
+                  className="w-full text-black"
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="instructions">Instructions (one per line)</Label>
+              <Label htmlFor="instructions" className="text-black">Instructions (one per line)</Label>
               <Textarea
                 id="instructions"
                 value={formData.instructions}
                 onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
                 required
-                className="w-full"
+                className="w-full text-black"
               />
             </div>
             <Button type="submit" className="w-full">Add Exercise</Button>
@@ -186,28 +186,28 @@ export default function ExerciseManagement() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="bg-white">
         <CardHeader>
-          <CardTitle className="text-xl">Exercise List</CardTitle>
+          <CardTitle className="text-xl text-black">Exercise List</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Muscle Group</TableHead>
-                <TableHead>Difficulty</TableHead>
-                <TableHead>Equipment</TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
+                <TableHead className="text-black">Name</TableHead>
+                <TableHead className="text-black">Muscle Group</TableHead>
+                <TableHead className="text-black">Difficulty</TableHead>
+                <TableHead className="text-black">Equipment</TableHead>
+                <TableHead className="w-[100px] text-black">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {exercises.map((exercise) => (
                 <TableRow key={exercise.id}>
-                  <TableCell className="font-medium">{exercise.name}</TableCell>
-                  <TableCell>{exercise.muscleGroup}</TableCell>
-                  <TableCell className="capitalize">{exercise.difficulty}</TableCell>
-                  <TableCell>{exercise.equipment.join(', ')}</TableCell>
+                  <TableCell className="font-medium text-black">{exercise.name}</TableCell>
+                  <TableCell className="text-black">{exercise.muscleGroup}</TableCell>
+                  <TableCell className="capitalize text-black">{exercise.difficulty}</TableCell>
+                  <TableCell className="text-black">{exercise.equipment.join(', ')}</TableCell>
                   <TableCell>
                     <Button
                       variant="destructive"
